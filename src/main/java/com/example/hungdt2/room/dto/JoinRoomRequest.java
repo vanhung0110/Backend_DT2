@@ -1,0 +1,6 @@
+package com.example.hungdt2.room.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record JoinRoomRequest(@NotBlank @Size(min=6, max=6) String code) {}

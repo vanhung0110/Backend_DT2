@@ -1,0 +1,10 @@
+target
+.gradle
+.maven
+.mvn
+.git
+.gitignore
+.DS_Store
+.vscode
+node_modules
+uploads

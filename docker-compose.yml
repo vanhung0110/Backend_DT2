@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: backend_vnchat
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+
+  app:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/backend_vnchat?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: example
+      APP_JWT_SECRET: "change-me-in-production-please-replace-with-32+chars!#2026"
+      APP_JWT_EXPMINUTES: 60
+      VOICE_AGORA_APP_ID: ${VOICE_AGORA_APP_ID}
+      VOICE_AGORA_APP_CERTIFICATE: ${VOICE_AGORA_APP_CERTIFICATE}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dbdata:
