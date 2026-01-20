@@ -78,6 +78,13 @@
 			<artifactId>flyway-core</artifactId>
 		</dependency>
 
+		<!-- Twilio SDK (for SMS Verify) -->
+		<dependency>
+			<groupId>com.twilio.sdk</groupId>
+			<artifactId>twilio</artifactId>
+			<version>10.4.1</version>
+		</dependency>
+
 		<!-- JWT (JJWT) -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
