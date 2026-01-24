@@ -35,106 +35,62 @@ public class PasswordResetService {
     private final SecureRandom random = new SecureRandom();
 
     public PasswordResetService(UserRepository userRepository, PasswordResetOtpRepository otpRepository, SmsSender smsSender, BCryptPasswordEncoder passwordEncoder,
-                                @Value("${otp.length:6}") int otpLength,
                                 @Value("${otp.expirySeconds:60}") int otpExpirySeconds,
                                 @Value("${otp.maxAttempts:3}") int otpMaxAttempts,
-                                java.util.Optional<com.example.hungdt2.sms.TwilioVerifyService> twilioVerifyServiceOptional) {
+                                com.example.hungdt2.sms.TwilioVerifyService twilioVerifyService) {
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
         this.smsSender = smsSender;
         this.passwordEncoder = passwordEncoder;
-        this.otpLength = otpLength;
+        this.otpLength = 6; // no local generation; keep default for validation consistency
         this.otpExpirySeconds = otpExpirySeconds;
         this.otpMaxAttempts = otpMaxAttempts;
-        this.twilioVerifyService = twilioVerifyServiceOptional.orElse(null);
+        this.twilioVerifyService = twilioVerifyService;
     }
 
-    // Optional Twilio Verify integration: if present, delegate sending/verification to Twilio Verify service
+    // Twilio Verify integration (required): delegate sending/verification to Twilio Verify service
     private final com.example.hungdt2.sms.TwilioVerifyService twilioVerifyService;
 
     @Transactional
     public void requestOtp(String phone) {
-        Optional<UserEntity> opt = userRepository.findByPhone(phone);
+        String normalized = normalizePhone(phone);
+        Optional<UserEntity> opt = userRepository.findByPhone(normalized);
+        if (opt.isEmpty()) opt = userRepository.findByPhone(phone);
         if (opt.isEmpty()) {
             // Do not reveal user existence — return success
-            log.info("requestOtp: phone {} not found — returning success (no-op)", phone);
+            log.info("requestOtp: phone {} not found — returning success (no-op)", normalized);
             return;
         }
 
         UserEntity user = opt.get();
 
-        // If Twilio Verify is configured, use it to send OTP and do not store OTP locally
-        if (twilioVerifyService != null) {
-            twilioVerifyService.sendVerification(phone);
-            log.info("Delegated OTP send to Twilio Verify for user {} phone={}", user.getId(), phone);
-            return;
-        }
-
-        String code = generateNumericCode(otpLength);
-        String hash = hash(code);
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(otpExpirySeconds);
-
-        PasswordResetOtpEntity entity = new PasswordResetOtpEntity();
-        entity.setUserId(user.getId());
-        entity.setPhone(phone);
-        entity.setOtpHash(hash);
-        entity.setAttempts(0);
-        entity.setUsed(false);
-        entity.setCreatedAt(now);
-        entity.setExpiresAt(expiresAt);
-        otpRepository.save(entity);
-
-        // send SMS (dev sender logs it)
-        smsSender.sendSms(phone, "Your verification code: " + code);
-        log.info("OTP generated for user {} phone={} expiresAt={}", user.getId(), phone, expiresAt);
+        // Always delegate OTP sending to Twilio Verify using normalized E.164 phone
+        twilioVerifyService.sendVerification(normalized);
+        log.info("Delegated OTP send to Twilio Verify for user {} phone={}", user.getId(), normalized);
     }
 
     @Transactional
     public String verifyOtp(String phone, String otp) {
-        // If Twilio Verify is present, use it to verify the code
-        if (twilioVerifyService != null) {
-            boolean ok = twilioVerifyService.checkVerification(phone, otp);
-            if (!ok) throw new BadRequestException("OTP_INVALID", "Invalid OTP");
-            // create a reset token record (we still persist a record so later reset can query by token)
-            Optional<UserEntity> opt = userRepository.findByPhone(phone);
-            if (opt.isEmpty()) throw new BadRequestException("USER_NOT_FOUND", "User not found");
-            UserEntity user = opt.get();
-            String resetToken = UUID.randomUUID().toString();
-            Instant now = Instant.now();
-            Instant tokenExpiry = now.plusSeconds(Math.max(300, otpExpirySeconds)); // default at least 5 minutes
-            PasswordResetOtpEntity entity = new PasswordResetOtpEntity();
-            entity.setUserId(user.getId());
-            entity.setPhone(phone);
-            entity.setAttempts(0);
-            entity.setUsed(true);
-            entity.setCreatedAt(now);
-            entity.setExpiresAt(tokenExpiry);
-            entity.setResetToken(resetToken);
-            otpRepository.save(entity);
-            return resetToken;
-        }
-
-        PasswordResetOtpEntity entity = otpRepository.findLatestByPhone(phone).orElseThrow(() -> new BadRequestException("OTP_EXPIRED", "OTP expired or not found"));
-        if (entity.getUsed()) throw new BadRequestException("OTP_INVALID", "OTP already used or invalid");
-        if (Instant.now().isAfter(entity.getExpiresAt())) throw new BadRequestException("OTP_EXPIRED", "OTP expired");
-
-        int attempts = entity.getAttempts() + 1;
-        entity.setAttempts(attempts);
-        if (attempts >= otpMaxAttempts && !matchesHash(otp, entity.getOtpHash())) {
-            entity.setUsed(true);
-            otpRepository.save(entity);
-            throw new BadRequestException("OTP_MAX_ATTEMPTS", "Max attempts exceeded");
-        }
-
-        if (!matchesHash(otp, entity.getOtpHash())) {
-            otpRepository.save(entity);
-            throw new BadRequestException("OTP_INVALID", "Invalid OTP");
-        }
-
-        // success: mark used and create reset token
+        String normalized = normalizePhone(phone);
+        boolean ok = twilioVerifyService.checkVerification(normalized, otp);
+        if (!ok) throw new BadRequestException("OTP_INVALID", "Invalid OTP");
+        // try to find user by normalized phone, fallback to raw phone
+        Optional<UserEntity> opt = userRepository.findByPhone(normalized);
+        if (opt.isEmpty()) opt = userRepository.findByPhone(phone);
+        if (opt.isEmpty()) throw new BadRequestException("USER_NOT_FOUND", "User not found");
+        UserEntity user = opt.get();
         String resetToken = UUID.randomUUID().toString();
+        Instant now = Instant.now();
+        Instant tokenExpiry = now.plusSeconds(Math.max(300, otpExpirySeconds)); // default at least 5 minutes
+        PasswordResetOtpEntity entity = new PasswordResetOtpEntity();
+        entity.setUserId(user.getId());
+        entity.setPhone(normalized);
+        // Twilio-verified token record
+        entity.setOtpHash(hash(resetToken));
+        entity.setAttempts(0);
         entity.setUsed(true);
+        entity.setCreatedAt(now);
+        entity.setExpiresAt(tokenExpiry);
         entity.setResetToken(resetToken);
         otpRepository.save(entity);
         return resetToken;
@@ -173,7 +129,12 @@ public class PasswordResetService {
         }
     }
 
-    private boolean matchesHash(String input, String hash) {
-        return hash(input).equalsIgnoreCase(hash);
+    private String normalizePhone(String phone) {
+        if (phone == null) return null;
+        String p = phone.trim().replaceAll("\\s+", "");
+        if (p.startsWith("+")) return p;
+        if (p.startsWith("0")) return "+84" + p.substring(1);
+        if (p.startsWith("84")) return "+" + p;
+        return p;
     }
 }

@@ -5,6 +5,7 @@ import com.example.hungdt2.auth.dto.RegisterRequest;
 import com.example.hungdt2.common.ApiResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled("RT feature removed - test disabled")
 public class RoomWsHandlerIntegrationTest {
 
     @org.springframework.boot.test.web.server.LocalServerPort

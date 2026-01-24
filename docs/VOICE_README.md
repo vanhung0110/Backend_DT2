@@ -1,7 +1,7 @@
 Voice feature (Agora) - setup & test
 
 Overview
-- Backend provides endpoints to join/leave/kick/list voice members for rooms.
+- Backend provides endpoints to join/leave/kick/list voice members for rooms, and additionally exposes the same voice operations for `friend-rooms` (e.g. `/friend-rooms/{id}/voice/join`). Friend-direct rooms are voice-enabled by default.
 - Web client (`VoicePanel`) integrates with Agora Web SDK and uses server-provided token + appId to join channels.
 - RN requires native integration (`react-native-agora`) and an EAS/native build.
 

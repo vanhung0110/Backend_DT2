@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 @Component
-@ConditionalOnProperty(name = "sms.provider", havingValue = "twilio_verify")
 public class TwilioVerifyService {
     private final Logger log = LoggerFactory.getLogger(TwilioVerifyService.class);
 

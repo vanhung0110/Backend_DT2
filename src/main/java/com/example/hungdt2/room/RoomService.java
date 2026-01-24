@@ -88,7 +88,7 @@ public class RoomService {
                     }
                 }
 
-                return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId());
+                return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(), r.getVoiceEnabled()==null?false:r.getVoiceEnabled());
             } catch (DataIntegrityViolationException ex) {
                 // assume code conflict, retry
             }
@@ -106,18 +106,28 @@ public class RoomService {
         var opt = roomRepository.findDirectRoomBetweenUsers(ownerId, otherUserId);
         if (opt.isPresent()) {
             RoomEntity r = opt.get();
-            return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId());
+            return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(), r.getVoiceEnabled()==null?false:r.getVoiceEnabled());
         }
 
         // otherwise create a new private room and add the other user
         CreateRoomRequest req = new CreateRoomRequest("", "PRIVATE", java.util.List.of(otherUserId), false);
-        return createRoom(ownerId, req);
+        CreateRoomResponse cr = createRoom(ownerId, req);
+        // ensure direct rooms have voice enabled by default
+        setRoomVoiceEnabled(cr.id(), true);
+        return new CreateRoomResponse(cr.id(), cr.code(), cr.name(), cr.type(), cr.ownerId(), true);
+    }
+
+    @Transactional
+    public void setRoomVoiceEnabled(Long roomId, boolean enabled) {
+        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        room.setVoiceEnabled(enabled);
+        roomRepository.save(room);
     }
 
     @Transactional(readOnly = true)
     public CreateRoomResponse getRoomItem(Long roomId) {
         RoomEntity r = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
-        return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId());
+        return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(), r.getVoiceEnabled()==null?false:r.getVoiceEnabled());
     }
 
     @Transactional

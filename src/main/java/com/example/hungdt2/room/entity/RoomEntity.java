@@ -40,6 +40,9 @@ public class RoomEntity {
         updatedAt = Instant.now();
     }
 
+    @Column(name = "voice_enabled", nullable = false)
+    private Boolean voiceEnabled = false;
+
     // getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -53,4 +56,6 @@ public class RoomEntity {
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public Boolean getVoiceEnabled() { return voiceEnabled; }
+    public void setVoiceEnabled(Boolean voiceEnabled) { this.voiceEnabled = voiceEnabled; }
 }

@@ -1,4 +1,6 @@
-RT Rooms Hardening Migration Notes
+RT Rooms Hardening (feature disabled)
+
+NOTE: The Real-time Rooms feature is disabled in this build. The following notes are retained for reference only.
 
 Overview
 - Added `updated_at` columns to `rt_invites` and `rt_members` (Flyway migrations V11 and V12).

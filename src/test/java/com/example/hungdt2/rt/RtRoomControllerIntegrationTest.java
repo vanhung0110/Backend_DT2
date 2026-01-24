@@ -6,6 +6,7 @@ import com.example.hungdt2.common.ApiResponse;
 import com.example.hungdt2.voice.dto.VoiceJoinResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled("RT feature disabled")
 public class RtRoomControllerIntegrationTest {
 
     @org.springframework.boot.test.web.server.LocalServerPort

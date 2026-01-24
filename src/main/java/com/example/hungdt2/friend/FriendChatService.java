@@ -40,12 +40,15 @@ public class FriendChatService {
         }
         // create underlying room as private and add both users
         var createdRoom = roomService.createRoomWithMembers(userId, "", "PRIVATE", java.util.List.of(otherUserId));
+        // enable voice for friend rooms
+        roomService.setRoomVoiceEnabled(createdRoom.id(), true);
         FriendRoomEntity f = new FriendRoomEntity();
         f.setRoomId(createdRoom.id());
         // normalize order for unique constraint (store smaller id in userA)
         if (userId < otherUserId) { f.setUserA(userId); f.setUserB(otherUserId); } else { f.setUserA(otherUserId); f.setUserB(userId); }
         friendRoomRepository.save(f);
-        return createdRoom;
+        // return fresh DTO with voice enabled
+        return new com.example.hungdt2.room.dto.CreateRoomResponse(createdRoom.id(), createdRoom.code(), createdRoom.name(), createdRoom.type(), createdRoom.ownerId(), true);
     }
 
     public List<com.example.hungdt2.message.dto.MessageItem> listMessages(Long friendRoomId, java.time.Instant before, int limit, Long requesterId) {
@@ -82,5 +85,34 @@ public class FriendChatService {
     public java.util.List<com.example.hungdt2.room.dto.CreateRoomResponse> listFriendRooms(Long userId) {
         var list = friendRoomRepository.findByUserAOrUserB(userId, userId);
         return list.stream().map(fr -> roomService.getRoomItem(fr.getRoomId())).collect(Collectors.toList());
+    }
+
+    /**
+     * Return underlying roomId for a friendRoom after validating the requester is a participant.
+     */
+    public Long getUnderlyingRoomIdForParticipant(Long friendRoomId, Long requesterId) {
+        FriendRoomEntity fr = friendRoomRepository.findById(friendRoomId).orElseThrow(() -> new NotFoundException("FRIEND_ROOM_NOT_FOUND", "Friend room not found"));
+        if (!(fr.getUserA().equals(requesterId) || fr.getUserB().equals(requesterId))) throw new com.example.hungdt2.exceptions.ForbiddenException("NOT_PARTICIPANT", "Not a participant");
+        return fr.getRoomId();
+    }
+
+    /**
+     * Return the other participant's userId for a friend room after validation.
+     */
+    public Long getOtherParticipant(Long friendRoomId, Long requesterId) {
+        FriendRoomEntity fr = friendRoomRepository.findById(friendRoomId).orElseThrow(() -> new NotFoundException("FRIEND_ROOM_NOT_FOUND", "Friend room not found"));
+        if (!(fr.getUserA().equals(requesterId) || fr.getUserB().equals(requesterId))) throw new com.example.hungdt2.exceptions.ForbiddenException("NOT_PARTICIPANT", "Not a participant");
+        return fr.getUserA().equals(requesterId) ? fr.getUserB() : fr.getUserA();
+    }
+
+    /**
+     * Ensure a friend room exists between the users and return the friend_room.id
+     */
+    @Transactional
+    public Long createOrGetFriendRoomId(Long userId, Long otherUserId) {
+        // ensure room exists (this will create underlying room and friend entry if needed)
+        getOrCreateFriendRoom(userId, otherUserId);
+        var opt = friendRoomRepository.findBetweenUsers(userId, otherUserId);
+        return opt.orElseThrow(() -> new NotFoundException("FRIEND_ROOM_NOT_FOUND", "Friend room not found")).getId();
     }
 }

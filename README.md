@@ -6,7 +6,7 @@ Run:
 Password reset / OTP
 - New endpoints: `POST /auth/forgot/request-otp` (body { phone }), `POST /auth/forgot/verify-otp` (body { phone, otp }) returning { resetToken }, and `POST /auth/forgot/reset` (body { resetToken, password }).
 - Defaults: `otp.length=6`, `otp.expirySeconds=60`, `otp.maxAttempts=3` (can be overridden with env vars).  
-- Dev SMS: a `DevSmsSender` logs OTPs (and stores last message for integration tests).
+- Dev SMS: removed. Integration tests use a mock `TwilioVerifyService` that captures OTPs for verification.
 - Twilio Verify integration: configure `sms.provider=twilio_verify` and set env vars `SMS_TWILIO_ACCOUNT_SID`, `SMS_TWILIO_AUTH_TOKEN`, `SMS_TWILIO_VERIFY_SERVICE_SID` to enable real SMS OTP sending via Twilio Verify.
   - Note: Twilio trial accounts may only send to verified phone numbers.
 - Set JWT secret in `application.properties` or env var `APP_JWT_SECRET` (property `app.jwt.secret`).
