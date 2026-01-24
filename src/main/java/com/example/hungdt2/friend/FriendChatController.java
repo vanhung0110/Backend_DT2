@@ -97,7 +97,7 @@ public class FriendChatController {
 
     // Call flow: send incoming call notification to other participant (caller only)
     @PostMapping("/call")
-    public ResponseEntity<ApiResponse<Void>> callFriend(@RequestParam Long otherUserId, Authentication authentication) {
+    public ResponseEntity<ApiResponse<java.util.Map<String,Object>>> callFriend(@RequestParam Long otherUserId, Authentication authentication) {
         Long me = (Long) authentication.getPrincipal();
         // ensure friend room exists and get friendRoomId
         Long frId = friendChatService.createOrGetFriendRoomId(me, otherUserId);
