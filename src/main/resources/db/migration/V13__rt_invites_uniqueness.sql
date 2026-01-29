@@ -1,0 +1,2 @@
+-- V13 migration (uniqueness for rt_invites) removed: RT feature removed so this migration is no longer applicable.
+-- Restore from VCS if re-enabling RT.

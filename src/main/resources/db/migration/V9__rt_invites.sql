@@ -1,0 +1,2 @@
+-- V9 migration removed: RT invites table creation removed as RT feature is deleted.
+-- Restore from VCS if needed.

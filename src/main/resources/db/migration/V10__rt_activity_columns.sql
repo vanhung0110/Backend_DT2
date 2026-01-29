@@ -1,0 +1,2 @@
+-- V10 migration removed: RT feature removed; migration intentionally deleted from active migrations.
+-- Restore from VCS if re-enabling RT.

@@ -1,0 +1,28 @@
+-- Add voice room support: flags and persistent membership
+ALTER TABLE rooms
+  ADD COLUMN IF NOT EXISTS voice_enabled BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS voice_type VARCHAR(32) DEFAULT 'AGORA',
+  ADD COLUMN IF NOT EXISTS persistent_voice BOOLEAN DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS voice_members (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  room_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  role VARCHAR(16) DEFAULT 'member',
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_seen TIMESTAMP NULL,
+  kicked BOOLEAN DEFAULT FALSE,
+  UNIQUE KEY ux_room_user (room_id, user_id),
+  FOREIGN KEY (room_id) REFERENCES rooms(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS voice_sessions (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  session_id VARCHAR(128) NOT NULL,
+  room_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  join_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  leave_at TIMESTAMP NULL,
+  meta VARCHAR(1024) NULL
+);

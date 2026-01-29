@@ -1,0 +1,40 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.example:hungdt2 >-------------------------
+[INFO] Building hungdt2 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ hungdt2 ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 17 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ hungdt2 ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 132 source files with javac [debug parameters release 17] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/di dong/Backend_DT2-main/src/main/java/com/example/hungdt2/websocket/RoomWsHandler.java:[121,33] cannot find symbol
+  symbol:   variable rtRoomService
+  location: class com.example.hungdt2.websocket.RoomWsHandler
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.523 s
+[INFO] Finished at: 2026-01-30T05:15:00+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project hungdt2: Compilation failure
+[ERROR] /D:/di dong/Backend_DT2-main/src/main/java/com/example/hungdt2/websocket/RoomWsHandler.java:[121,33] cannot find symbol
+[ERROR]   symbol:   variable rtRoomService
+[ERROR]   location: class com.example.hungdt2.websocket.RoomWsHandler
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

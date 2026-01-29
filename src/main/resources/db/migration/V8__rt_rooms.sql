@@ -1,0 +1,3 @@
+-- V8 migration removed: RT feature has been removed from this codebase.
+-- Original migration creating rt_rooms and rt_members has been intentionally deleted.
+-- If you need to restore RT, retrieve original migration from VCS history.
