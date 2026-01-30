@@ -25,7 +25,8 @@ public class MessageService {
     private final RoomRepository roomRepository;
     private final RoomMemberRepository memberRepository;
 
-    public MessageService(MessageRepository messageRepository, RoomRepository roomRepository, RoomMemberRepository memberRepository) {
+    public MessageService(MessageRepository messageRepository, RoomRepository roomRepository,
+            RoomMemberRepository memberRepository) {
         this.messageRepository = messageRepository;
         this.roomRepository = roomRepository;
         this.memberRepository = memberRepository;
@@ -33,39 +34,58 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public List<MessageItem> listMessages(Long roomId, Instant before, int limit, Long requesterId) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
 
         // membership check
-        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, requesterId).orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
-        if (!"APPROVED".equals(m.getStatus())) throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
+        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, requesterId)
+                .orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
+        if (!"APPROVED".equals(m.getStatus()))
+            throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
 
-        if (limit <= 0) limit = 50;
+        if (limit <= 0)
+            limit = 50;
         List<MessageEntity> rows = messageRepository.findMessages(roomId, before, PageRequest.of(0, limit));
         // repository returns newest first; reverse to ascending
         Collections.reverse(rows);
-        return rows.stream().map(r -> new MessageItem(r.getId(), r.getRoomId(), r.getSenderId(), r.getContent(), r.getType(), r.getAudioUrl(), r.getAudioDurationMs(), r.getCreatedAt())).collect(Collectors.toList());
+        return rows
+                .stream().map(r -> new MessageItem(r.getId(), r.getRoomId(), r.getSenderId(), r.getContent(),
+                        r.getType(), r.getAudioUrl(), r.getAudioDurationMs(), r.getImageUrl(), r.getIsRead(),
+                        r.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<MessageItem> listMessagesAfter(Long roomId, Instant after, int limit, Long requesterId) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
 
         // membership check
-        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, requesterId).orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
-        if (!"APPROVED".equals(m.getStatus())) throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
+        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, requesterId)
+                .orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
+        if (!"APPROVED".equals(m.getStatus()))
+            throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
 
-        if (limit <= 0) limit = 50;
+        if (limit <= 0)
+            limit = 50;
         List<MessageEntity> rows = messageRepository.findMessagesAfter(roomId, after, PageRequest.of(0, limit));
         // repository returns ascending order already
-        return rows.stream().map(r -> new MessageItem(r.getId(), r.getRoomId(), r.getSenderId(), r.getContent(), r.getType(), r.getAudioUrl(), r.getAudioDurationMs(), r.getCreatedAt())).collect(Collectors.toList());
+        return rows
+                .stream().map(r -> new MessageItem(r.getId(), r.getRoomId(), r.getSenderId(), r.getContent(),
+                        r.getType(), r.getAudioUrl(), r.getAudioDurationMs(), r.getImageUrl(), r.getIsRead(),
+                        r.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public MessageItem sendMessage(Long roomId, Long senderId, CreateMessageRequest req) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
 
-        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, senderId).orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
-        if (!"APPROVED".equals(m.getStatus())) throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
+        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, senderId)
+                .orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
+        if (!"APPROVED".equals(m.getStatus()))
+            throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
 
         MessageEntity me = new MessageEntity();
         me.setRoomId(roomId);
@@ -74,15 +94,19 @@ public class MessageService {
         me.setType("TEXT");
         me.setCreatedAt(Instant.now());
         messageRepository.save(me);
-        return new MessageItem(me.getId(), me.getRoomId(), me.getSenderId(), me.getContent(), me.getType(), me.getAudioUrl(), me.getAudioDurationMs(), me.getCreatedAt());
+        return new MessageItem(me.getId(), me.getRoomId(), me.getSenderId(), me.getContent(), me.getType(),
+                me.getAudioUrl(), me.getAudioDurationMs(), me.getImageUrl(), me.getIsRead(), me.getCreatedAt());
     }
 
     @Transactional
     public MessageItem sendAudioMessage(Long roomId, Long senderId, String audioUrl, Long durationMs) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
 
-        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, senderId).orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
-        if (!"APPROVED".equals(m.getStatus())) throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
+        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, senderId)
+                .orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
+        if (!"APPROVED".equals(m.getStatus()))
+            throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
 
         MessageEntity me = new MessageEntity();
         me.setRoomId(roomId);
@@ -94,6 +118,42 @@ public class MessageService {
         me.setAudioDurationMs(durationMs);
         me.setCreatedAt(Instant.now());
         messageRepository.save(me);
-        return new MessageItem(me.getId(), me.getRoomId(), me.getSenderId(), me.getContent(), me.getType(), me.getAudioUrl(), me.getAudioDurationMs(), me.getCreatedAt());
+        return new MessageItem(me.getId(), me.getRoomId(), me.getSenderId(), me.getContent(), me.getType(),
+                me.getAudioUrl(), me.getAudioDurationMs(), me.getImageUrl(), me.getIsRead(), me.getCreatedAt());
+    }
+
+    @Transactional
+    public MessageItem sendImageMessage(Long roomId, Long senderId, String imageUrl) {
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+
+        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, senderId)
+                .orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
+        if (!"APPROVED".equals(m.getStatus()))
+            throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
+
+        MessageEntity me = new MessageEntity();
+        me.setRoomId(roomId);
+        me.setSenderId(senderId);
+        me.setContent("");
+        me.setType("IMAGE");
+        me.setImageUrl(imageUrl);
+        me.setCreatedAt(Instant.now());
+        messageRepository.save(me);
+        return new MessageItem(me.getId(), me.getRoomId(), me.getSenderId(), me.getContent(), me.getType(),
+                me.getAudioUrl(), me.getAudioDurationMs(), me.getImageUrl(), me.getIsRead(), me.getCreatedAt());
+    }
+
+    @Transactional
+    public void markRead(Long roomId, Long userId) {
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+
+        RoomMemberEntity m = memberRepository.findByRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new ForbiddenException("NOT_ROOM_MEMBER", "Not a member of the room"));
+        if (!"APPROVED".equals(m.getStatus()))
+            throw new ForbiddenException("NOT_APPROVED", "Member not approved yet");
+
+        messageRepository.markRead(roomId, userId);
     }
 }

@@ -30,32 +30,95 @@ public class MessageEntity {
     @Column(name = "audio_duration_ms")
     private Long audioDurationMs;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "is_read")
+    private Boolean isRead = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
-    public MessageEntity() {}
+    public MessageEntity() {
+    }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getRoomId() { return roomId; }
-    public void setRoomId(Long roomId) { this.roomId = roomId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Long getSenderId() { return senderId; }
-    public void setSenderId(Long senderId) { this.senderId = senderId; }
+    public Long getRoomId() {
+        return roomId;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public void setRoomId(Long roomId) {
+        this.roomId = roomId;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public Long getSenderId() {
+        return senderId;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
+    }
 
-    public String getAudioUrl() { return audioUrl; }
-    public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+    public String getContent() {
+        return content;
+    }
 
-    public Long getAudioDurationMs() { return audioDurationMs; }
-    public void setAudioDurationMs(Long audioDurationMs) { this.audioDurationMs = audioDurationMs; }
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getAudioUrl() {
+        return audioUrl;
+    }
+
+    public void setAudioUrl(String audioUrl) {
+        this.audioUrl = audioUrl;
+    }
+
+    public Long getAudioDurationMs() {
+        return audioDurationMs;
+    }
+
+    public void setAudioDurationMs(Long audioDurationMs) {
+        this.audioDurationMs = audioDurationMs;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(Boolean isRead) {
+        this.isRead = isRead;
+    }
 }
