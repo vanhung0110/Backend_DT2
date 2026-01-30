@@ -1,7 +1,10 @@
-package com.example.hungdt2.ai.dto;
+package com.example.hungdt2.ai;
+
 
 import com.example.hungdt2.ai.dto.AiChatRequest;
 import com.example.hungdt2.ai.dto.AiChatResponse;
+import com.example.hungdt2.ai.dto.AiChatRequest.HistoryItem;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
