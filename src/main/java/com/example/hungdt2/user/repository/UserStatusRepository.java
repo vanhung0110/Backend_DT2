@@ -9,8 +9,10 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
-public interface StatusRepository extends JpaRepository<StatusEntity, Long> {
-    Page<StatusEntity> findByUserIdAndExpiresAtAfterOrderByCreatedAtDesc(Long userId, LocalDateTime now, Pageable pageable);
+@Repository("userStatusRepository")
+public interface UserStatusRepository extends JpaRepository<StatusEntity, Long> {
+    Page<StatusEntity> findByUserIdAndExpiresAtAfterOrderByCreatedAtDesc(Long userId, LocalDateTime now,
+            Pageable pageable);
+
     List<StatusEntity> findByExpiresAtBefore(LocalDateTime now);
 }

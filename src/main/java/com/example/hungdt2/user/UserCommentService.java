@@ -7,8 +7,8 @@ import com.example.hungdt2.user.entity.CommentEntity;
 import com.example.hungdt2.user.entity.PostEntity;
 import com.example.hungdt2.user.entity.UserEntity;
 import com.example.hungdt2.user.entity.UserProfileEntity;
-import com.example.hungdt2.user.repository.CommentRepository;
-import com.example.hungdt2.user.repository.PostRepository;
+import com.example.hungdt2.user.repository.UserCommentRepository;
+import com.example.hungdt2.user.repository.UserPostRepository;
 import com.example.hungdt2.user.repository.UserProfileRepository;
 import com.example.hungdt2.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserCommentService {
 
-    private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
+    private final UserCommentRepository commentRepository;
+    private final UserPostRepository postRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository profileRepository;
 

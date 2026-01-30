@@ -6,7 +6,7 @@ import com.example.hungdt2.user.dto.StatusResponse;
 import com.example.hungdt2.user.entity.StatusEntity;
 import com.example.hungdt2.user.entity.UserEntity;
 import com.example.hungdt2.user.entity.UserProfileEntity;
-import com.example.hungdt2.user.repository.StatusRepository;
+import com.example.hungdt2.user.repository.UserStatusRepository;
 import com.example.hungdt2.user.repository.UserProfileRepository;
 import com.example.hungdt2.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StatusService {
 
-    private final StatusRepository statusRepository;
+    private final UserStatusRepository statusRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository profileRepository;
 

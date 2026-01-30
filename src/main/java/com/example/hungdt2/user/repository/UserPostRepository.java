@@ -8,8 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
-public interface PostRepository extends JpaRepository<PostEntity, Long> {
+@Repository("userPostRepository")
+public interface UserPostRepository extends JpaRepository<PostEntity, Long> {
     Page<PostEntity> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
     Page<PostEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

@@ -6,7 +6,7 @@ import com.example.hungdt2.user.dto.PostResponse;
 import com.example.hungdt2.user.entity.PostEntity;
 import com.example.hungdt2.user.entity.UserEntity;
 import com.example.hungdt2.user.entity.UserProfileEntity;
-import com.example.hungdt2.user.repository.PostRepository;
+import com.example.hungdt2.user.repository.UserPostRepository;
 import com.example.hungdt2.user.repository.UserProfileRepository;
 import com.example.hungdt2.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PostService {
 
-    private final PostRepository postRepository;
+    private final UserPostRepository postRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository profileRepository;
 

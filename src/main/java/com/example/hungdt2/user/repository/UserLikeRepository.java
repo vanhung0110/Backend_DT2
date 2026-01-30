@@ -6,10 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
-public interface LikeRepository extends JpaRepository<LikeEntity, Long> {
+@Repository("userLikeRepository")
+public interface UserLikeRepository extends JpaRepository<LikeEntity, Long> {
     Optional<LikeEntity> findByPostIdAndUserId(Long postId, Long userId);
+
     long countByPostId(Long postId);
+
     boolean existsByPostIdAndUserId(Long postId, Long userId);
+
     void deleteByPostIdAndUserId(Long postId, Long userId);
 }

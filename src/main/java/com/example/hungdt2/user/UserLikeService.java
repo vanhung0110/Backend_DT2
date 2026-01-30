@@ -3,8 +3,8 @@ package com.example.hungdt2.user;
 import com.example.hungdt2.exceptions.NotFoundException;
 import com.example.hungdt2.user.entity.LikeEntity;
 import com.example.hungdt2.user.entity.PostEntity;
-import com.example.hungdt2.user.repository.LikeRepository;
-import com.example.hungdt2.user.repository.PostRepository;
+import com.example.hungdt2.user.repository.UserLikeRepository;
+import com.example.hungdt2.user.repository.UserPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserLikeService {
 
-    private final LikeRepository likeRepository;
-    private final PostRepository postRepository;
+    private final UserLikeRepository likeRepository;
+    private final UserPostRepository postRepository;
 
     @Transactional
     public void toggleLike(Long postId, Long userId) {
