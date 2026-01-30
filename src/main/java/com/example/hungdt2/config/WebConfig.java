@@ -9,8 +9,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Map /files/** to local uploads directory
-        // Use file:./uploads/ relative to working dir
         String workingDir = System.getProperty("user.dir");
         registry.addResourceHandler("/files/**")
                 .addResourceLocations("file:" + workingDir + "/uploads/");
