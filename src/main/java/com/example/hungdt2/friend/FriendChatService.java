@@ -115,14 +115,20 @@ public class FriendChatService {
     public java.util.List<com.example.hungdt2.room.dto.CreateRoomResponse> listFriendRooms(Long userId) {
         var list = friendRoomRepository.findByUserAOrUserB(userId, userId);
         return list.stream().map(fr -> {
-            var r = roomService.getRoomItem(fr.getRoomId());
-            // Find partner
-            Long partnerId = fr.getUserA().equals(userId) ? fr.getUserB() : fr.getUserA();
-            String partnerName = userRepository.findById(partnerId)
-                    .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername()).orElse("Unknown");
-            return new com.example.hungdt2.room.dto.CreateRoomResponse(r.id(), r.code(), partnerName, r.type(),
-                    r.ownerId(), r.voiceEnabled());
-        }).collect(Collectors.toList());
+            try {
+                var r = roomService.getRoomItem(fr.getRoomId());
+                // Find partner
+                Long partnerId = fr.getUserA().equals(userId) ? fr.getUserB() : fr.getUserA();
+                String partnerName = userRepository.findById(partnerId)
+                        .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername()).orElse("Unknown");
+                return new com.example.hungdt2.room.dto.CreateRoomResponse(r.id(), r.code(), partnerName, r.type(),
+                        r.ownerId(), r.voiceEnabled());
+            } catch (Exception e) {
+                // Log error and skip this room
+                System.err.println("Error listing friend room " + fr.getId() + ": " + e.getMessage());
+                return null;
+            }
+        }).filter(java.util.Objects::nonNull).collect(Collectors.toList());
     }
 
     /**
