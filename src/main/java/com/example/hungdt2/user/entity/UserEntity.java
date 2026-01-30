@@ -9,13 +9,11 @@ import lombok.Setter;
 import java.time.Instant;
 
 @Entity
-@Table(name = "users",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "username"),
-                @UniqueConstraint(columnNames = "email"),
-                @UniqueConstraint(columnNames = "phone")
-        }
-)
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "username"),
+        @UniqueConstraint(columnNames = "email"),
+        @UniqueConstraint(columnNames = "phone")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,6 +39,9 @@ public class UserEntity {
     @Column(name = "display_name", length = 120)
     private String displayName;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
@@ -55,7 +56,8 @@ public class UserEntity {
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
-        if (this.isActive == null) this.isActive = true;
+        if (this.isActive == null)
+            this.isActive = true;
     }
 
     @PreUpdate

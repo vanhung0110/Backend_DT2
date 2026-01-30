@@ -27,24 +27,31 @@ public class UserController {
             throw new NotFoundException("USER_NOT_FOUND", "User not found");
         }
         Long userId = (Long) authentication.getPrincipal();
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
-        UserMeResponse dto = new UserMeResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(), user.getDisplayName(), user.getIsActive());
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
+        UserMeResponse dto = new UserMeResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(),
+                user.getDisplayName(), user.getAvatarUrl(), user.getIsActive());
         return new ApiResponse<>(dto);
     }
 
     @GetMapping("/{id}")
     public ApiResponse<com.example.hungdt2.user.dto.UserItem> getUser(@PathVariable Long id) {
-        UserEntity user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
-        com.example.hungdt2.user.dto.UserItem item = new com.example.hungdt2.user.dto.UserItem(user.getId(), user.getUsername(), user.getDisplayName());
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
+        com.example.hungdt2.user.dto.UserItem item = new com.example.hungdt2.user.dto.UserItem(user.getId(),
+                user.getUsername(), user.getDisplayName());
         return new ApiResponse<>(item);
     }
 
     @GetMapping("/search")
-    public ApiResponse<com.example.hungdt2.user.dto.UserItem> findByPhone(@org.springframework.web.bind.annotation.RequestParam String phone) {
+    public ApiResponse<com.example.hungdt2.user.dto.UserItem> findByPhone(
+            @org.springframework.web.bind.annotation.RequestParam String phone) {
         var opt = userRepository.findByPhone(phone);
-        if (opt.isEmpty()) return new ApiResponse<>(null);
+        if (opt.isEmpty())
+            return new ApiResponse<>(null);
         var u = opt.get();
-        com.example.hungdt2.user.dto.UserItem item = new com.example.hungdt2.user.dto.UserItem(u.getId(), u.getUsername(), u.getDisplayName());
+        com.example.hungdt2.user.dto.UserItem item = new com.example.hungdt2.user.dto.UserItem(u.getId(),
+                u.getUsername(), u.getDisplayName());
         return new ApiResponse<>(item);
     }
 }
