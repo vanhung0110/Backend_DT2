@@ -47,7 +47,7 @@ public class FriendChatService {
             String partnerName = userRepository.findById(partnerId)
                     .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername()).orElse("Unknown");
             return new com.example.hungdt2.room.dto.CreateRoomResponse(r.id(), r.code(), partnerName, r.type(),
-                    r.ownerId(), r.voiceEnabled());
+                    r.ownerId(), r.voiceEnabled(), partnerId);
         }
         // create underlying room as private and add both users
         var createdRoom = roomService.createRoomWithMembers(userId, "", "PRIVATE", java.util.List.of(otherUserId));
@@ -70,7 +70,7 @@ public class FriendChatService {
                 .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername()).orElse("Unknown");
         // return fresh DTO with voice enabled and proper name
         return new com.example.hungdt2.room.dto.CreateRoomResponse(createdRoom.id(), createdRoom.code(), partnerName,
-                createdRoom.type(), createdRoom.ownerId(), true);
+                createdRoom.type(), createdRoom.ownerId(), true, otherUserId);
     }
 
     public List<com.example.hungdt2.message.dto.MessageItem> listMessages(Long friendRoomId, java.time.Instant before,
@@ -122,7 +122,7 @@ public class FriendChatService {
                 String partnerName = userRepository.findById(partnerId)
                         .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername()).orElse("Unknown");
                 return new com.example.hungdt2.room.dto.CreateRoomResponse(r.id(), r.code(), partnerName, r.type(),
-                        r.ownerId(), r.voiceEnabled());
+                        r.ownerId(), r.voiceEnabled(), partnerId);
             } catch (Exception e) {
                 // Log error and skip this room
                 System.err.println("Error listing friend room " + fr.getId() + ": " + e.getMessage());

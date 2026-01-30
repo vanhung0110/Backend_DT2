@@ -27,7 +27,8 @@ public class RoomService {
     private final UserRepository userRepository;
     private final SecureRandom random = new SecureRandom();
 
-    public RoomService(RoomRepository roomRepository, RoomMemberRepository memberRepository, UserRepository userRepository) {
+    public RoomService(RoomRepository roomRepository, RoomMemberRepository memberRepository,
+            UserRepository userRepository) {
         this.roomRepository = roomRepository;
         this.memberRepository = memberRepository;
         this.userRepository = userRepository;
@@ -72,9 +73,11 @@ public class RoomService {
                 // if members provided, add them as APPROVED members (owner invited)
                 if (req.members() != null && !req.members().isEmpty()) {
                     for (Long uid : req.members()) {
-                        if (uid == null || uid.equals(ownerId)) continue;
+                        if (uid == null || uid.equals(ownerId))
+                            continue;
                         // ensure user exists
-                        userRepository.findById(uid).orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
+                        userRepository.findById(uid)
+                                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
                         RoomMemberEntity mm = new RoomMemberEntity();
                         mm.setRoomId(r.getId());
                         mm.setUserId(uid);
@@ -88,7 +91,8 @@ public class RoomService {
                     }
                 }
 
-                return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(), r.getVoiceEnabled()==null?false:r.getVoiceEnabled());
+                return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(),
+                        r.getVoiceEnabled() == null ? false : r.getVoiceEnabled(), null);
             } catch (DataIntegrityViolationException ex) {
                 // assume code conflict, retry
             }
@@ -100,13 +104,15 @@ public class RoomService {
     @Transactional
     public CreateRoomResponse getOrCreateDirectRoom(Long ownerId, Long otherUserId) {
         // validate other user exists
-        userRepository.findById(otherUserId).orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
+        userRepository.findById(otherUserId)
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
 
         // try find existing private room with exactly these two users
         var opt = roomRepository.findDirectRoomBetweenUsers(ownerId, otherUserId);
         if (opt.isPresent()) {
             RoomEntity r = opt.get();
-            return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(), r.getVoiceEnabled()==null?false:r.getVoiceEnabled());
+            return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(),
+                    r.getVoiceEnabled() == null ? false : r.getVoiceEnabled(), otherUserId);
         }
 
         // otherwise create a new private room and add the other user
@@ -114,37 +120,44 @@ public class RoomService {
         CreateRoomResponse cr = createRoom(ownerId, req);
         // ensure direct rooms have voice enabled by default
         setRoomVoiceEnabled(cr.id(), true);
-        return new CreateRoomResponse(cr.id(), cr.code(), cr.name(), cr.type(), cr.ownerId(), true);
+        return new CreateRoomResponse(cr.id(), cr.code(), cr.name(), cr.type(), cr.ownerId(), true, otherUserId);
     }
 
     @Transactional
     public void setRoomVoiceEnabled(Long roomId, boolean enabled) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
         room.setVoiceEnabled(enabled);
         roomRepository.save(room);
     }
 
     @Transactional(readOnly = true)
     public CreateRoomResponse getRoomItem(Long roomId) {
-        RoomEntity r = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
-        return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(), r.getVoiceEnabled()==null?false:r.getVoiceEnabled());
+        RoomEntity r = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        return new CreateRoomResponse(r.getId(), r.getCode(), r.getName(), r.getType(), r.getOwnerId(),
+                r.getVoiceEnabled() == null ? false : r.getVoiceEnabled(), null);
     }
 
     @Transactional
-    public CreateRoomResponse createRoomWithMembers(Long ownerId, String name, String type, java.util.List<Long> members) {
+    public CreateRoomResponse createRoomWithMembers(Long ownerId, String name, String type,
+            java.util.List<Long> members) {
         CreateRoomRequest req = new CreateRoomRequest(name == null ? "" : name, type, members, false);
         return createRoom(ownerId, req);
     }
 
     @Transactional
     public JoinRoomResponse joinByCode(Long userId, String code) {
-        RoomEntity room = roomRepository.findByCode(code).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        RoomEntity room = roomRepository.findByCode(code)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
         // check existing membership
         Optional<RoomMemberEntity> existing = memberRepository.findByRoomIdAndUserId(room.getId(), userId);
         if (existing.isPresent()) {
             String st = existing.get().getStatus();
-            if ("APPROVED".equals(st)) throw new ConflictException("ALREADY_JOINED", "User already joined");
-            if ("PENDING".equals(st)) throw new ConflictException("JOIN_ALREADY_PENDING", "Join already pending");
+            if ("APPROVED".equals(st))
+                throw new ConflictException("ALREADY_JOINED", "User already joined");
+            if ("PENDING".equals(st))
+                throw new ConflictException("JOIN_ALREADY_PENDING", "Join already pending");
             // if REJECTED, we allow re-request
         }
 
@@ -167,38 +180,50 @@ public class RoomService {
     public List<MyRoomItem> listMyRooms(Long userId) {
         List<RoomMemberEntity> memberships = memberRepository.findByUserId(userId);
         return memberships.stream().map(m -> {
-            RoomEntity r = roomRepository.findById(m.getRoomId()).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+            RoomEntity r = roomRepository.findById(m.getRoomId())
+                    .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
             return new MyRoomItem(r.getId(), r.getCode(), r.getName(), r.getType(), m.getRole(), m.getStatus());
         }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<PendingRequestItem> listPending(Long roomId, Long requesterId) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
-        if (!room.getOwnerId().equals(requesterId)) throw new ForbiddenException("NOT_ROOM_OWNER", "Not room owner");
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        if (!room.getOwnerId().equals(requesterId))
+            throw new ForbiddenException("NOT_ROOM_OWNER", "Not room owner");
         List<RoomMemberEntity> pendings = memberRepository.findByRoomIdAndStatus(roomId, "PENDING");
         return pendings.stream().map(m -> {
-            UserEntity u = userRepository.findById(m.getUserId()).orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
+            UserEntity u = userRepository.findById(m.getUserId())
+                    .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
             return new PendingRequestItem(u.getId(), u.getUsername(), u.getDisplayName(), m.getStatus());
         }).collect(Collectors.toList());
     }
 
     @Transactional
     public void approve(Long roomId, Long ownerId, Long targetUserId) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
-        if (!room.getOwnerId().equals(ownerId)) throw new ForbiddenException("NOT_ROOM_OWNER", "Not room owner");
-        RoomMemberEntity req = memberRepository.findByRoomIdAndUserId(roomId, targetUserId).orElseThrow(() -> new NotFoundException("REQUEST_NOT_FOUND", "Request not found"));
-        if (!"PENDING".equals(req.getStatus())) throw new ConflictException("REQUEST_NOT_PENDING", "Request not pending");
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        if (!room.getOwnerId().equals(ownerId))
+            throw new ForbiddenException("NOT_ROOM_OWNER", "Not room owner");
+        RoomMemberEntity req = memberRepository.findByRoomIdAndUserId(roomId, targetUserId)
+                .orElseThrow(() -> new NotFoundException("REQUEST_NOT_FOUND", "Request not found"));
+        if (!"PENDING".equals(req.getStatus()))
+            throw new ConflictException("REQUEST_NOT_PENDING", "Request not pending");
         req.setStatus("APPROVED");
         memberRepository.save(req);
     }
 
     @Transactional
     public void reject(Long roomId, Long ownerId, Long targetUserId) {
-        RoomEntity room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
-        if (!room.getOwnerId().equals(ownerId)) throw new ForbiddenException("NOT_ROOM_OWNER", "Not room owner");
-        RoomMemberEntity req = memberRepository.findByRoomIdAndUserId(roomId, targetUserId).orElseThrow(() -> new NotFoundException("REQUEST_NOT_FOUND", "Request not found"));
-        if (!"PENDING".equals(req.getStatus())) throw new ConflictException("REQUEST_NOT_PENDING", "Request not pending");
+        RoomEntity room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("ROOM_NOT_FOUND", "Room not found"));
+        if (!room.getOwnerId().equals(ownerId))
+            throw new ForbiddenException("NOT_ROOM_OWNER", "Not room owner");
+        RoomMemberEntity req = memberRepository.findByRoomIdAndUserId(roomId, targetUserId)
+                .orElseThrow(() -> new NotFoundException("REQUEST_NOT_FOUND", "Request not found"));
+        if (!"PENDING".equals(req.getStatus()))
+            throw new ConflictException("REQUEST_NOT_PENDING", "Request not pending");
         req.setStatus("REJECTED");
         memberRepository.save(req);
     }

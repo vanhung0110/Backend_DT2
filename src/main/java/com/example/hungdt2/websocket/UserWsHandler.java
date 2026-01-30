@@ -51,30 +51,42 @@ public class UserWsHandler extends TextWebSocketHandler {
             forwardMsg.put("senderId", senderId);
 
             // Forward to target user
-            sendToUser(targetUserId, forwardMsg);
+            boolean sent = sendToUser(targetUserId, forwardMsg);
+
+            // If target unreachable and it's a call initiation, inform sender immediately
+            if (!sent && "call-user".equals(type)) {
+                com.fasterxml.jackson.databind.node.ObjectNode rejectMsg = mapper.createObjectNode();
+                rejectMsg.put("type", "reject-call");
+                rejectMsg.put("senderId", targetUserId); // Pretend it's from target
+                rejectMsg.put("targetUserId", senderId);
+                rejectMsg.put("reason", "offline");
+                sendToUser(senderId, rejectMsg);
+            }
 
         } catch (Exception e) {
             log.error("Error handling signal message: {}", e.getMessage());
         }
     }
 
-    public void sendToUser(Long userId, Object payload) {
+    public boolean sendToUser(Long userId, Object payload) {
         if (userId == null)
-            return;
+            return false;
         String key = String.valueOf(userId);
         Set<WebSocketSession> list = users.get(key);
         if (list == null || list.isEmpty()) {
-            // log.debug("Target user {} not connected", userId);
-            return;
+            return false;
         }
+        boolean anySent = false;
         try {
             String json = mapper.writeValueAsString(payload);
             TextMessage msg = new TextMessage(json);
             for (WebSocketSession s : list) {
                 try {
                     synchronized (s) { // Prevent concurrent sends on same session
-                        if (s.isOpen())
+                        if (s.isOpen()) {
                             s.sendMessage(msg);
+                            anySent = true;
+                        }
                     }
                 } catch (Exception e) {
                     log.warn("Failed to send WS msg to user {}: {}", userId, e.getMessage());
@@ -82,6 +94,8 @@ public class UserWsHandler extends TextWebSocketHandler {
             }
         } catch (Exception ex) {
             log.warn("Failed to serialize WS payload: {}", ex.getMessage());
+            return false;
         }
+        return anySent;
     }
 }
