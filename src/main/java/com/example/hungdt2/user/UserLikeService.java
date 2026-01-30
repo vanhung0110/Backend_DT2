@@ -9,9 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Service("userLikeService")
 @RequiredArgsConstructor
-public class LikeService {
+public class UserLikeService {
 
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
@@ -20,9 +20,9 @@ public class LikeService {
     public void toggleLike(Long postId, Long userId) {
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("POST_NOT_FOUND", "Post not found"));
-        
+
         boolean liked = likeRepository.existsByPostIdAndUserId(postId, userId);
-        
+
         if (liked) {
             likeRepository.deleteByPostIdAndUserId(postId, userId);
         } else {
@@ -31,7 +31,7 @@ public class LikeService {
             like.setUserId(userId);
             likeRepository.save(like);
         }
-        
+
         // Update post like count
         long likeCount = likeRepository.countByPostId(postId);
         post.setLikeCount((int) likeCount);
