@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "PostPost")
 @Table(name = "posts")
 @Data
 @NoArgsConstructor
