@@ -28,13 +28,15 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**", "/files/**", "/ws/**").permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // CORS configuration source — allowed origins can be configured via property `cors.allowed-origins`
+    // CORS configuration source — allowed origins can be configured via property
+    // `cors.allowed-origins`
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource(
             @org.springframework.beans.factory.annotation.Value("${cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://10.0.2.2:8080}") String allowedOrigins) {

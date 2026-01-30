@@ -1,0 +1,18 @@
+package com.example.hungdt2.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Map /files/** to local uploads directory
+        // Use file:./uploads/ relative to working dir
+        String workingDir = System.getProperty("user.dir");
+        registry.addResourceHandler("/files/**")
+                .addResourceLocations("file:" + workingDir + "/uploads/");
+    }
+}
