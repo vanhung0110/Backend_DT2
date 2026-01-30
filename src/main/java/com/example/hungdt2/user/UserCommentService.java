@@ -17,9 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Service("userCommentService")
 @RequiredArgsConstructor
-public class CommentService {
+public class UserCommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
@@ -30,54 +30,52 @@ public class CommentService {
     public CommentResponse createComment(Long postId, Long userId, CreateCommentRequest req) {
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("POST_NOT_FOUND", "Post not found"));
-        
+
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found"));
-        
+
         CommentEntity comment = new CommentEntity();
         comment.setPostId(postId);
         comment.setUserId(userId);
         comment.setContent(req.content());
-        
+
         CommentEntity saved = commentRepository.save(comment);
-        
+
         // Update post comment count
         post.setCommentCount((int) commentRepository.countByPostId(postId));
         postRepository.save(post);
-        
+
         UserProfileEntity profile = profileRepository.findByUserId(userId).orElse(null);
-        
+
         return new CommentResponse(
-            saved.getId(),
-            saved.getPostId(),
-            saved.getUserId(),
-            user.getUsername(),
-            user.getDisplayName(),
-            profile != null ? profile.getProfileImageUrl() : null,
-            saved.getContent(),
-            saved.getCreatedAt()
-        );
+                saved.getId(),
+                saved.getPostId(),
+                saved.getUserId(),
+                user.getUsername(),
+                user.getDisplayName(),
+                profile != null ? profile.getProfileImageUrl() : null,
+                saved.getContent(),
+                saved.getCreatedAt());
     }
 
     @Transactional(readOnly = true)
     public Page<CommentResponse> getPostComments(Long postId, Pageable pageable) {
         postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("POST_NOT_FOUND", "Post not found"));
-        
+
         return commentRepository.findByPostIdOrderByCreatedAtDesc(postId, pageable)
                 .map(comment -> {
                     UserEntity user = userRepository.findById(comment.getUserId()).orElse(null);
                     UserProfileEntity profile = profileRepository.findByUserId(comment.getUserId()).orElse(null);
                     return new CommentResponse(
-                        comment.getId(),
-                        comment.getPostId(),
-                        comment.getUserId(),
-                        user != null ? user.getUsername() : "Unknown",
-                        user != null ? user.getDisplayName() : "Unknown",
-                        profile != null ? profile.getProfileImageUrl() : null,
-                        comment.getContent(),
-                        comment.getCreatedAt()
-                    );
+                            comment.getId(),
+                            comment.getPostId(),
+                            comment.getUserId(),
+                            user != null ? user.getUsername() : "Unknown",
+                            user != null ? user.getDisplayName() : "Unknown",
+                            profile != null ? profile.getProfileImageUrl() : null,
+                            comment.getContent(),
+                            comment.getCreatedAt());
                 });
     }
 
@@ -85,13 +83,13 @@ public class CommentService {
     public void deleteComment(Long commentId, Long userId) {
         CommentEntity comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("COMMENT_NOT_FOUND", "Comment not found"));
-        
+
         if (!comment.getUserId().equals(userId)) {
             throw new NotFoundException("FORBIDDEN", "Cannot delete other user's comment");
         }
-        
+
         commentRepository.delete(comment);
-        
+
         // Update post comment count
         PostEntity post = postRepository.findById(comment.getPostId()).orElse(null);
         if (post != null) {
